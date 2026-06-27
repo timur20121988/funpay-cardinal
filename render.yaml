@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: funpay-cardinal
+    runtime: python
+    region: frankfurt
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python railway_entry.py
+    envVars:
+      - key: GOLDEN_KEY
+        sync: false
+      - key: TELEGRAM_TOKEN
+        sync: false
+      - key: TELEGRAM_SECRET_KEY
+        sync: false
+      - key: FPC_AUTO_RAISE
+        value: "1"
+      - key: FPC_AUTO_RESPONSE
+        value: "1"
+      - key: FPC_LOCALE
+        value: "ru"
+      - key: FPC_LANGUAGE
+        value: "ru"

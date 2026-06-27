@@ -1,0 +1,15 @@
+/venv
+/venv2
+/__pycache__
+/.idea
+/FunPayAPI/__pycache__
+/configs
+/logs
+/storage
+/build
+/dist
+test.py
+*.zip
+
+# Railway entry point generates configs at runtime
+# /plugins is created at startup if missing
