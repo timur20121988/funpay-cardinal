@@ -21,3 +21,5 @@ services:
         value: "ru"
       - key: FPC_LANGUAGE
         value: "ru"
+      - key: FPC_AUTO_AUTHORIZE
+        value: "8414510938"

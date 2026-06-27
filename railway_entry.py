@@ -5,6 +5,7 @@ Generates configs from environment variables, starts healthcheck server and the 
 import os
 import sys
 import time
+import json
 import logging
 import threading
 import atexit
@@ -161,6 +162,47 @@ def ensure_directories():
         os.makedirs(d, exist_ok=True)
 
 
+def ensure_authorized_users():
+    """Pre-authorize a Telegram user if FPC_AUTO_AUTHORIZE env var is set.
+    This prevents lockouts after container restarts (Render ephemeral storage).
+    """
+    auto_auth = os.environ.get("FPC_AUTO_AUTHORIZE", "").strip()
+    if not auto_auth:
+        return
+    auth_file = "storage/cache/tg_authorized_users.json"
+    try:
+        user_id = int(auto_auth)
+    except ValueError:
+        logging.getLogger("FPC-Railway").warning(
+            f"FPC_AUTO_AUTHORIZE value '{auto_auth}' is not a valid numeric Telegram ID."
+        )
+        return
+
+    # Load existing or create empty
+    existing = {}
+    if os.path.exists(auth_file):
+        try:
+            with open(auth_file, "r", encoding="utf-8") as f:
+                data = f.read()
+            if data.strip():
+                existing = json.loads(data)
+                if isinstance(existing, list):
+                    existing = {u: {} for u in existing}
+        except Exception:
+            existing = {}
+
+    # Normalize keys to int
+    existing = {int(k) if not isinstance(k, int) else k: v for k, v in existing.items()}
+
+    if user_id not in existing:
+        existing[user_id] = {}
+        with open(auth_file, "w", encoding="utf-8") as f:
+            f.write(json.dumps(existing))
+        logging.getLogger("FPC-Railway").info(
+            f"User {user_id} auto-authorized via FPC_AUTO_AUTHORIZE."
+        )
+
+
 def ensure_config_files():
     """Create config files from env vars."""
     # _main.cfg
@@ -190,6 +232,7 @@ def run_bot():
 
         ensure_directories()
         ensure_config_files()
+        ensure_authorized_users()
 
         # Execute main.py as __main__ (it's a script, not an importable module)
         import runpy
