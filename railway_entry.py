@@ -145,6 +145,8 @@ def generate_main_config() -> str:
     for section in config.sections():
         output_lines.append(f"[{section}]")
         for key, value in config.items(section):
+            # Flatten multiline values to single line (Python 3.14 configparser is strict)
+            value = value.replace("\n", " ").replace("\r", "")
             output_lines.append(f"{key} : {value}")
         output_lines.append("")
 
